@@ -1,0 +1,11 @@
+.DS_Store
+*.log
+AWSVPNClient/
+AWS VPN Client/
+argocd/
+containers/
+packer/
+yarn/
+__pycache__/
+
+
