@@ -18,6 +18,7 @@ return {
             "typescript",
             "markdown",
             "ejs",
+            "template",
           },
           init_options = {
             html = {

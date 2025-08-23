@@ -1,4 +1,3 @@
-local basics_ls = require("lspconfig.configs.basics_ls")
 return {
   "neovim/nvim-lspconfig",
   event = "LazyFile",
@@ -64,36 +63,6 @@ return {
       -- LSP Server Settings
       -- @type lspconfig.options
       servers = {
-        emmet_ls = {
-          filetypes = {
-            "html",
-            "typescriptreact",
-            "javascriptreact",
-            "css",
-            "sass",
-            "scss",
-            "less",
-            "javascript",
-            "typescript",
-            "markdown",
-            "template",
-          },
-          init_options = {
-            html = {
-              options = {
-                -- For possible options, see: https://github.com/emmetio/emmet/blob/master/src/config.ts#L79-L26
-                ["bem.enabled"] = true,
-              },
-            },
-          },
-        },
-        basics_ls = {
-          settings = {
-            bashIde = {
-              globPattern = "*@(.sh|.inc|.bash|.command|.zsh)",
-            },
-          },
-        },
         lua_ls = {
           -- mason = false, -- set to false if you don't want this server to be installed with mason
           -- Use this to add any additional keymaps
