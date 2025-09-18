@@ -1,5 +1,5 @@
 return {
-  "echasnovski/mini.nvim",
+  "nvim-mini/mini.nvim",
   event = { "BufReadPre", "BufNewFile" },
   version = "*",
   config = function()
