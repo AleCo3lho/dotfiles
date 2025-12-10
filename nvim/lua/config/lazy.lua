@@ -65,3 +65,17 @@ require("lazy").setup({
     },
   },
 })
+
+-- Fancy diagnostics
+vim.api.nvim_set_hl(0, "FancyDiagnostic", { link = "Normal" })
+vim.api.nvim_set_hl(0, "FancyDiagnosticIcon", { link = "Normal" })
+vim.api.nvim_set_hl(0, "FancyDiagnosticInfo", { link = "DiagnosticInfo" })
+vim.api.nvim_set_hl(0, "FancyDiagnosticInfoIcon", { link = "DiagnosticInfo" })
+vim.api.nvim_set_hl(0, "FancyDiagnosticHint", { link = "DiagnosticHint" })
+vim.api.nvim_set_hl(0, "FancyDiagnosticHintIcon", { link = "DiagnosticHint" })
+vim.api.nvim_set_hl(0, "FancyDiagnosticWarn", { link = "DiagnosticWarn" })
+vim.api.nvim_set_hl(0, "FancyDiagnosticWarnIcon", { link = "DiagnosticWarn" })
+vim.api.nvim_set_hl(0, "FancyDiagnosticError", { link = "DiagnosticError" })
+vim.api.nvim_set_hl(0, "FancyDiagnosticErrorIcon", { link = "DiagnosticError" })
+
+require("scripts.diagnostics").setup()
