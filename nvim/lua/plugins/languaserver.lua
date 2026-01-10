@@ -162,6 +162,8 @@ return {
         },
         -- Tailwind configuration
         tailwindcss = {},
+        -- Zig configuration
+        zls = {},
         -- Lua enhanced configuration
         lua_ls = {
           settings = {
