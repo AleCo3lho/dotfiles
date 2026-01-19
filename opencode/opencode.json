@@ -22,6 +22,14 @@
       "headers": {
         "Authorization": "Bearer REDACTED"
       }
+    },
+    "mercado-pago": {
+      "enabled": false,
+      "type": "remote",
+      "url": "https://mcp.mercadopago.com/mcp",
+      "headers": {
+        "Authorization": "Bearer REDACTED"
+      }
     }
   }
 }

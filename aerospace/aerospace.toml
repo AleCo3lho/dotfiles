@@ -174,3 +174,7 @@ run = 'move-node-to-workspace G'
 [[on-window-detected]]
 if.app-id = 'com.wizards.mtga'
 run = 'move-node-to-workspace G'
+
+[[on-window-detected]]
+if.app-id = 'md.obsidian'
+run = 'move-node-to-workspace G'
