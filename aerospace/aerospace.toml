@@ -13,6 +13,7 @@ default-root-container-orientation = 'auto'
 key-mapping.preset = 'qwerty'
 on-focused-monitor-changed = ['move-mouse monitor-lazy-center']
 on-focus-changed = 'move-mouse window-lazy-center'
+
 [gaps]
 inner.horizontal = 0 #10
 inner.vertical = 0   #10
@@ -132,6 +133,10 @@ run = 'move-node-to-workspace B'
 
 [[on-window-detected]]
 if.app-id = 'com.github.wez.wezterm'
+run = 'move-node-to-workspace T'
+
+[[on-window-detected]]
+if.app-id = 'com.raphaelamorim.rio'
 run = 'move-node-to-workspace T'
 
 [[on-window-detected]]

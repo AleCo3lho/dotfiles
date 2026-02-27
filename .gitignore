@@ -7,5 +7,4 @@ containers/
 packer/
 yarn/
 __pycache__/
-
-
+.secrets
