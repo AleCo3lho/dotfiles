@@ -239,20 +239,80 @@ section_install_script() {
     setup_aerospace
     apply_sparse_checkout
     select_profile
+    trust_bundle_taps
   )
   for fn in "${funcs[@]}"; do
     assert "install.sh defines $fn" grep -q "^${fn}()" "$script"
   done
 
   # Idempotency guards — each install function should check before acting
-  assert "install_xcode_cli_tools has guard" grep -A5 'install_xcode_cli_tools()' "$script" | grep -q 'xcode-select -p'
-  assert "install_homebrew has guard" grep -A5 'install_homebrew()' "$script" | grep -q 'command_exists brew'
-  assert "setup_zsh_framework has guard" grep -A5 'setup_zsh_framework()' "$script" | grep -q '\.oh-my-zsh'
-  assert "setup_tpm has guard" grep -A5 'setup_tpm()' "$script" | grep -q 'TPM_DIR'
-  assert "setup_node has guard" grep -A10 'setup_node()' "$script" | grep -q 'command_exists node'
-  assert "setup_python has guard" grep -A10 'setup_python()' "$script" | grep -q 'pyenv versions'
-  assert "setup_rust has guard" grep -A5 'setup_rust()' "$script" | grep -q 'command_exists rustc'
-  assert "setup_secrets has guard" grep -A5 'setup_secrets()' "$script" | grep -q '\.secrets'
+  if grep -A5 'install_xcode_cli_tools()' "$script" | grep -q 'xcode-select -p'; then
+    pass "install_xcode_cli_tools has guard"
+  else
+    fail "install_xcode_cli_tools has guard"
+  fi
+  if grep -A5 'install_homebrew()' "$script" | grep -q 'command_exists brew'; then
+    pass "install_homebrew has guard"
+  else
+    fail "install_homebrew has guard"
+  fi
+  if grep -A5 'setup_zsh_framework()' "$script" | grep -q '\.oh-my-zsh'; then
+    pass "setup_zsh_framework has guard"
+  else
+    fail "setup_zsh_framework has guard"
+  fi
+  if grep -A5 'setup_tpm()' "$script" | grep -q 'TPM_DIR'; then
+    pass "setup_tpm has guard"
+  else
+    fail "setup_tpm has guard"
+  fi
+  if grep -A10 'setup_node()' "$script" | grep -q 'command_exists node'; then
+    pass "setup_node has guard"
+  else
+    fail "setup_node has guard"
+  fi
+  if grep -A10 'setup_python()' "$script" | grep -q 'pyenv versions'; then
+    pass "setup_python has guard"
+  else
+    fail "setup_python has guard"
+  fi
+  if grep -A5 'setup_rust()' "$script" | grep -q 'command_exists rustc'; then
+    pass "setup_rust has guard"
+  else
+    fail "setup_rust has guard"
+  fi
+  if grep -A5 'setup_secrets()' "$script" | grep -q '\.secrets'; then
+    pass "setup_secrets has guard"
+  else
+    fail "setup_secrets has guard"
+  fi
+
+  # Homebrew 7 refuses untrusted third-party taps, so trust must happen before
+  # brew bundle runs, not after.
+  if grep -A6 'install_brew_packages()' "$script" | grep -q 'trust_bundle_taps'; then
+    pass "install_brew_packages calls trust_bundle_taps"
+  else
+    fail "install_brew_packages calls trust_bundle_taps"
+  fi
+  if grep -A4 'trust_bundle_taps()' "$script" | grep -q 'brew trust --help'; then
+    pass "trust_bundle_taps guards on brew trust availability"
+  else
+    fail "trust_bundle_taps guards on brew trust availability"
+  fi
+
+  # Every tap a bundle declares must be a well-formed owner/name, or the
+  # trust call silently does nothing useful.
+  local f tapname
+  for f in "$DOTFILES_DIR"/brew/*.Brewfile; do
+    while IFS= read -r tapname; do
+      [[ -n "$tapname" ]] || continue
+      if [[ "$tapname" =~ ^[A-Za-z0-9_-]+/[A-Za-z0-9_-]+$ ]]; then
+        pass "tap '$tapname' in $(basename "$f") is well-formed"
+      else
+        fail "tap '$tapname' in $(basename "$f") is malformed"
+      fi
+    done < <(sed -nE 's/^[[:space:]]*tap[[:space:]]+"([^"]+)".*/\1/p' "$f")
+  done
 }
 
 # ===========================

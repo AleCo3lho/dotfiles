@@ -99,9 +99,44 @@ install_homebrew() {
   eval "$(/opt/homebrew/bin/brew shellenv)"
 }
 
+# ---------- Tap Trust ----------
+# Homebrew 7 refuses to load formulae/casks from untrusted third-party taps:
+#   Error: Refusing to load cask nikitabobko/tap/aerospace from untrusted tap
+#          nikitabobko/tap.
+# This must run before `brew bundle`, and works even when the tap is not yet
+# installed, since it only records consent in ~/.homebrew/trust.json (or
+# $XDG_CONFIG_HOME/homebrew/trust.json when XDG_CONFIG_HOME is set).
+trust_bundle_taps() {
+  if ! brew trust --help &>/dev/null; then
+    log "This Homebrew has no 'brew trust'; nothing to trust"
+    return
+  fi
+
+  local bundle file tap trusted
+  trusted="$(brew trust --json=v1 2>/dev/null || true)"
+
+  for bundle in $BREW_BUNDLES; do
+    file="$DOTFILES_DIR/brew/$bundle.Brewfile"
+    [[ -r "$file" ]] || continue
+    while IFS= read -r tap; do
+      [[ -n "$tap" ]] || continue
+      if [[ "$trusted" == *"\"$tap\""* ]]; then
+        log "Tap already trusted: $tap"
+      else
+        log "Trusting tap: $tap"
+        brew trust --tap "$tap"
+      fi
+    done < <(sed -nE 's/^[[:space:]]*tap[[:space:]]+"([^"]+)".*/\1/p' "$file")
+  done
+}
+
 # ---------- Brew Packages ----------
 install_brew_packages() {
   local bundle file
+
+  # Third-party taps must be trusted before brew bundle tries to load them.
+  trust_bundle_taps
+
   for bundle in $BREW_BUNDLES; do
     file="$DOTFILES_DIR/brew/$bundle.Brewfile"
     [[ -r "$file" ]] || fail "Profile references missing bundle: brew/$bundle.Brewfile"
@@ -307,4 +342,7 @@ main() {
   print_manual_steps
 }
 
-main "$@"
+# Only bootstrap when executed; sourcing exposes the functions for testing.
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+  main "$@"
+fi

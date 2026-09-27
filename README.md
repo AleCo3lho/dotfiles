@@ -173,3 +173,21 @@ bash tests/test_dotfiles.sh -v   # per-assertion output
 ```
 
 No side effects; nothing is installed.
+
+### Third-party taps
+
+Homebrew 7 refuses to load formulae or casks from untrusted third-party taps:
+
+```
+Error: Refusing to load cask nikitabobko/tap/aerospace from untrusted tap
+       nikitabobko/tap.
+```
+
+`install.sh` handles this: before running `brew bundle` it reads the `tap "..."`
+lines out of the profile's bundles and runs `brew trust --tap` for each. This
+works even on a fresh machine where the taps are not installed yet, since trust
+is only a consent record in `~/.homebrew/trust.json` (or
+`$XDG_CONFIG_HOME/homebrew/trust.json` when that is set).
+
+Currently that covers `nikitabobko/tap` (AeroSpace) and `hashicorp/tap` (Vault).
+Adding a tap to a bundle is enough — no change to `install.sh` is needed.
