@@ -1,12 +1,11 @@
 return {
   {
     "saghen/blink.cmp",
-    build = false,
+    dependencies = { "saghen/blink.lib" },
+    build = function()
+      require("blink.cmp").build():wait(60000)
+    end,
     opts = function(_, opts)
-      -- ensure the fuzzy table exists
-      opts.fuzzy = opts.fuzzy or {}
-      -- pick the pure-Lua backend
-      opts.fuzzy.implementation = "lua"
       -- Enhanced completion sources
       opts.sources = opts.sources or {}
       opts.sources.default = { "lsp", "path", "snippets", "buffer" }
