@@ -11,7 +11,11 @@
     "dev_y0ngha",
     "erayack",
     "clins1994",
-    "stephlv"
+    "stephlv",
+    "artistro08",
+    "andreaselia",
+    "0xdhrv",
+    "ray.dhruv"
   ],
   "pastContributors": [
     "Elliot67",
@@ -98,7 +102,27 @@
       "title": "Set Status",
       "subtitle": "Slack",
       "description": "Set your status.",
-      "mode": "view"
+      "mode": "view",
+      "arguments": [
+        {
+          "name": "statusText",
+          "placeholder": "Status text",
+          "type": "text",
+          "required": false
+        },
+        {
+          "name": "emoji",
+          "placeholder": ":rocket:",
+          "type": "text",
+          "required": false
+        },
+        {
+          "name": "expiration",
+          "placeholder": "Minutes, today, or week",
+          "type": "text",
+          "required": false
+        }
+      ]
     }
   ],
   "preferences": [
@@ -117,6 +141,15 @@
       "required": false,
       "title": "Proxy URL",
       "type": "textfield"
+    },
+    {
+      "title": "AI Message Signature",
+      "label": "Add a Raycast signature to messages written with AI",
+      "description": "Show a subtle Raycast signature below messages written by AI tools.",
+      "name": "showAiMessageSignature",
+      "type": "checkbox",
+      "required": false,
+      "default": true
     },
     {
       "title": "Navigation",
@@ -156,9 +189,53 @@
       "confirmation": false
     },
     {
+      "title": "Read Conversation",
+      "name": "read-conversation",
+      "description": "Read messages from a Slack channel, DM, group DM, user DM, or pasted Slack message permalink. When given a U or W user ID, it opens or finds that DM and returns its D-prefixed channel ID; use this to resolve a person before Upload Files. A permalink returns the referenced message and its thread.",
+      "input": {
+        "type": "object",
+        "properties": {
+          "conversation": {
+            "type": "string",
+            "description": "A Slack conversation ID, user ID, or message permalink. Conversation IDs start with C, D, or G. User IDs start with U or W. Passing a user ID opens or finds the DM and returns its D-prefixed channel ID; use that channel ID with Upload Files."
+          },
+          "limit": {
+            "type": "number",
+            "description": "Maximum number of messages to return. Defaults to 30 and is capped at 100."
+          },
+          "after": {
+            "type": "string",
+            "description": "Only messages after this ISO 8601 timestamp will be returned."
+          }
+        },
+        "required": [
+          "conversation"
+        ]
+      },
+      "confirmation": false
+    },
+    {
       "title": "Get Users",
       "name": "get-users",
       "description": "List all users in the Slack team",
+      "confirmation": false
+    },
+    {
+      "title": "Find Users",
+      "name": "find-users",
+      "description": "Find Slack users by name, username, display name, or email address. Use this to resolve a person to a user ID. Before uploading files to that person, pass the user ID to Read Conversation and use its returned DM channel ID.",
+      "input": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "A name, display name, username, or email address to search for."
+          }
+        },
+        "required": [
+          "query"
+        ]
+      },
       "confirmation": false
     },
     {
@@ -170,21 +247,22 @@
         "properties": {
           "text": {
             "type": "string",
-            "description": "A string value for status text, should be short and sweet, with no punctuation, e.g. \"Working out\", \"Listening to Drake's new album\", \"Coffe break\". It should not include the status duration for example \"Working out\" instead of \"Working out for 2 hours\" or \"Working out until tomorrow\".\n\nTo unset the status, provide an empty string."
+            "description": "Status text. Keep it short and omit the duration. Provide an empty string together with an empty emoji to clear the status. Omit both text and emoji when only changing snooze."
           },
           "emoji": {
             "type": "string",
-            "description": "A Slack-compatible string for single emoji matching the text of the status. Emojis should be in the form: :<emoji identifier>:. If the user doesn't specify an emoji, come up with one that matches the text.\n\nYou can call the `get-emojis` tool to get a list of all custom emojis in the workspace. Do this only if you think the user is using a custom emoji.\n\nTo unset the status, provide an empty string."
+            "description": "A Slack-compatible emoji in the form :emoji:. Provide an empty string together with empty text to clear the status. Omit both text and emoji when only changing snooze."
           },
           "duration": {
             "type": "number",
-            "description": "An integer representing the duration of the status in seconds. Only provide it if the user has specified a time or the end of status"
+            "description": "Status duration in seconds. Only provide it when the user specifies when the status should expire."
+          },
+          "snoozeMinutes": {
+            "type": "number",
+            "description": "Do Not Disturb duration in minutes. A positive integer starts or changes snooze. Use 0 to end the current snooze. Omit it to leave snooze unchanged."
           }
         },
-        "required": [
-          "text",
-          "emoji"
-        ]
+        "required": []
       },
       "confirmation": false
     },
@@ -217,9 +295,282 @@
         ]
       },
       "confirmation": false
+    },
+    {
+      "title": "Read Thread",
+      "name": "read-thread",
+      "description": "Read a bounded page of messages in a Slack thread. Use this when the user asks to summarize, inspect, or answer questions about a specific threaded conversation. Requires the channel ID and the parent message timestamp, which can come from Get Channel History or Search Messages. The response includes hasMore and nextCursor so more messages can be fetched when needed.",
+      "input": {
+        "type": "object",
+        "properties": {
+          "channel": {
+            "type": "string",
+            "description": "The Slack channel ID that contains the thread. Use Get Channels, Get Channel History, or Search Messages to find it.\n\n@example \"C12345678\""
+          },
+          "threadTs": {
+            "type": "string",
+            "description": "The timestamp of the parent message of the thread. This is the `ts` value from Get Channel History or Search Messages.\n\n@example \"1718899200.000100\""
+          },
+          "limit": {
+            "type": "number",
+            "description": "The maximum number of thread messages to return. Defaults to 50 and is capped at 100 to avoid returning too much context."
+          },
+          "cursor": {
+            "type": "string",
+            "description": "The pagination cursor from a previous response. Use this to read more messages when `hasMore` is true."
+          }
+        },
+        "required": [
+          "channel",
+          "threadTs"
+        ]
+      },
+      "confirmation": false
+    },
+    {
+      "title": "Open Group DM",
+      "name": "open-group-dm",
+      "description": "Open or resume a Slack group DM with 2 to 8 users. Use Find Users first to resolve each person to a user ID. Do not include the authenticated user. Returns a group conversation ID that can be passed to Send Message or Upload Files.",
+      "input": {
+        "type": "object",
+        "properties": {
+          "userIds": {
+            "type": "string",
+            "description": "Slack user IDs to include in the group DM, one per line. Do not include the authenticated user; Slack adds them automatically. Use Find Users to resolve names to IDs first.\n\n@example \"U12345678\\nU87654321\""
+          }
+        },
+        "required": [
+          "userIds"
+        ]
+      },
+      "confirmation": false
+    },
+    {
+      "title": "Send Message",
+      "name": "send-message",
+      "description": "Send a Slack message to a channel, group DM, existing DM, or user. Pass a conversation ID or user ID and the message text. When given a user ID, the tool opens or finds the DM first. For messages with file attachments, use Upload Files instead.",
+      "input": {
+        "type": "object",
+        "properties": {
+          "recipient": {
+            "type": "string",
+            "description": "The recipient's Slack conversation ID or user ID. Conversation IDs start with C, D, or G. User IDs start with U or W.\nUse Get Channels or Get Users to find the ID. When a user ID is provided, the tool opens or finds the direct message first.\n\n@example \"C12345678\""
+          },
+          "text": {
+            "type": "string",
+            "description": "The message text to send. Standard Markdown is supported, including headings, lists, task lists, tables, links, block quotes, and code blocks. Use Slack IDs for native mentions, such as `<@U12345678>` for a person and `<#C12345678>` for a channel."
+          }
+        },
+        "required": [
+          "recipient",
+          "text"
+        ]
+      },
+      "confirmation": false
+    },
+    {
+      "title": "Update Message",
+      "name": "update-message",
+      "description": "Edit a Slack message posted by the authenticated user. Requires the channel ID, message timestamp, and complete replacement text. Use the permalink or a read/search tool to resolve the message first when needed.",
+      "input": {
+        "type": "object",
+        "properties": {
+          "channel": {
+            "type": "string",
+            "description": "The Slack channel ID containing the message. Use a Slack permalink, Get Channels, Read Conversation, Get Channel History, or Search Messages to find it.\n\n@example \"C12345678\""
+          },
+          "messageTs": {
+            "type": "string",
+            "description": "The timestamp of the message to edit. This is the `ts` value from a Slack permalink or a read/search tool.\n\n@example \"1718899200.000100\""
+          },
+          "text": {
+            "type": "string",
+            "description": "The complete replacement text for the message. Standard Markdown is supported, including headings, lists, task lists, tables, links, block quotes, and code blocks. Use Slack IDs for native mentions, such as `<@U12345678>` for a person and `<#C12345678>` for a channel."
+          }
+        },
+        "required": [
+          "channel",
+          "messageTs",
+          "text"
+        ]
+      },
+      "confirmation": false
+    },
+    {
+      "title": "Add Reaction",
+      "name": "add-reaction",
+      "description": "Add an emoji reaction to a Slack message. Requires the channel ID, message timestamp, and Slack emoji name. Use Get Emojis to discover custom workspace emoji names.",
+      "input": {
+        "type": "object",
+        "properties": {
+          "channel": {
+            "type": "string",
+            "description": "The Slack channel ID containing the message. Use a Slack permalink, Get Channels, Read Conversation, Get Channel History, or Search Messages to find it.\n\n@example \"C12345678\""
+          },
+          "messageTs": {
+            "type": "string",
+            "description": "The timestamp of the message to react to. This is the `ts` value from a Slack permalink or a read/search tool.\n\n@example \"1718899200.000100\""
+          },
+          "emoji": {
+            "type": "string",
+            "description": "The Slack emoji name to add, with or without surrounding colons. Use Get Emojis to discover custom workspace emoji names.\n\n@example \"thumbsup\""
+          }
+        },
+        "required": [
+          "channel",
+          "messageTs",
+          "emoji"
+        ]
+      },
+      "confirmation": false
+    },
+    {
+      "title": "Reply to Thread",
+      "name": "reply-thread",
+      "description": "Post a reply to a Slack thread. Requires the channel ID, the parent message timestamp, and the reply text. Use Read Thread first when context is needed. For replies with file attachments, use Upload Files instead.",
+      "input": {
+        "type": "object",
+        "properties": {
+          "channel": {
+            "type": "string",
+            "description": "The Slack channel ID that contains the thread. Use Get Channels, Get Channel History, or Search Messages to find it.\n\n@example \"C12345678\""
+          },
+          "threadTs": {
+            "type": "string",
+            "description": "The timestamp of the parent message to reply to. This is the `ts` value from Get Channel History, Search Messages, or Read Thread.\n\n@example \"1718899200.000100\""
+          },
+          "text": {
+            "type": "string",
+            "description": "The text to post as a reply in the thread. Standard Markdown is supported, including headings, lists, task lists, tables, links, block quotes, and code blocks. Use Slack IDs for native mentions, such as `<@U12345678>` for a person and `<#C12345678>` for a channel."
+          },
+          "replyBroadcast": {
+            "type": "boolean",
+            "description": "Also send the reply to the channel. Use this sparingly when the reply is important enough for everyone in the channel to see."
+          }
+        },
+        "required": [
+          "channel",
+          "threadTs",
+          "text"
+        ]
+      },
+      "confirmation": false
+    },
+    {
+      "title": "Get Huddle Link",
+      "name": "get-huddle-link",
+      "description": "Get a Slack Huddle join link for a channel, DM, group DM, or user. Pass a conversation ID or user ID. When given a user ID, the tool opens or finds the DM first.",
+      "input": {
+        "type": "object",
+        "properties": {
+          "conversation": {
+            "type": "string",
+            "description": "A Slack conversation ID or user ID. Conversation IDs start with C, D, or G. User IDs start with U or W and are resolved to a direct-message conversation.\n\n@example \"C12345678\""
+          }
+        },
+        "required": [
+          "conversation"
+        ]
+      },
+      "confirmation": false
+    },
+    {
+      "title": "Upload Files",
+      "name": "upload-files",
+      "description": "Upload one or more local files to a Slack channel, DM, group DM, or thread, optionally with message text. The channel must be a C, D, or G conversation ID; never pass a U or W user ID. For a named person, use Find Users, then Read Conversation, then pass its returned D-prefixed channel ID here. Pass multiple absolute file paths separated by newlines.",
+      "input": {
+        "type": "object",
+        "properties": {
+          "channel": {
+            "type": "string",
+            "description": "The Slack conversation ID to send the files to. Conversation IDs start with C, D, or G; never pass a U or W user ID. To send files to a person, first use Read Conversation with their user ID, then pass its returned channel ID.\n\n@example \"C12345678\""
+          },
+          "filePaths": {
+            "type": "string",
+            "description": "Absolute local paths of the files to upload, one path per line. Use the path from an attachment supplied by the user when available.\nSlack accepts common file types (images such as png/jpg/gif, pdf, text, etc.) as-is; do not convert, re-encode, or copy files to change their format before uploading."
+          },
+          "text": {
+            "type": "string",
+            "description": "Optional message text to send with the files. Slack mrkdwn is supported. Omit it to send only the files."
+          },
+          "threadTs": {
+            "type": "string",
+            "description": "Optional timestamp of the parent message when the files should be posted as a thread reply. Never use a reply's timestamp.\n\n@example \"1718899200.000100\""
+          }
+        },
+        "required": [
+          "channel",
+          "filePaths"
+        ]
+      },
+      "confirmation": false
+    },
+    {
+      "title": "Download Files",
+      "name": "download-files",
+      "description": "Download one or more files (attachments) from Slack to a local folder. Pass Slack file IDs, one per line; file IDs start with F and appear in the `files` array returned by Read Conversation, Read Thread, Get Channel History, or Search Messages. Files are saved to the user's ~/Downloads folder by default, or to an optional destination directory. Returns the saved absolute paths.",
+      "input": {
+        "type": "object",
+        "properties": {
+          "fileIds": {
+            "type": "string",
+            "description": "Slack file IDs to download, one per line. File IDs start with `F` and can be\nfound in the `files` array returned by Read Conversation, Read Thread, Get\nChannel History, or Search Messages.\n\n@example \"F0123456789\""
+          },
+          "destinationDir": {
+            "type": "string",
+            "description": "Optional absolute path of the directory to save the files into. Defaults to\nthe user's `~/Downloads` folder. A leading `~` is expanded to the home\ndirectory. The directory is created if it does not exist."
+          }
+        },
+        "required": [
+          "fileIds"
+        ]
+      },
+      "confirmation": false
     }
   ],
+  "dependencies": {
+    "@raycast/api": "^1.104.6",
+    "@raycast/utils": "^2.2.2",
+    "@slack/web-api": "^7.14.1",
+    "date-fns": "^4.1.0",
+    "date-fns-tz": "^3.2.0",
+    "https-proxy-agent": "^7.0.6",
+    "lodash": "^4.17.23",
+    "node-emoji": "^2.2.0"
+  },
+  "devDependencies": {
+    "@raycast/eslint-config": "^2.1.1",
+    "@types/lodash": "^4.17.23",
+    "@types/node": "^25.2.3",
+    "@types/react": "^19.2.14",
+    "eslint": "^9.39.3",
+    "prettier": "^3.8.1",
+    "typescript": "^5.9.3"
+  },
+  "scripts": {
+    "build": "ray build -e dist",
+    "dev": "ray develop",
+    "fix-lint": "ray lint --fix",
+    "lint": "ray lint",
+    "publish": "npx @raycast/api@latest publish",
+    "test": "tsc --project tsconfig.test.json && node --test .test-dist/shared/client/*.test.js"
+  },
+  "volta": {
+    "node": "22.14.0",
+    "npm": "10.9.2"
+  },
+  "platforms": [
+    "macOS",
+    "Windows"
+  ],
+  "overrides": {
+    "brace-expansion@1": "1.1.18",
+    "brace-expansion@2": "2.1.4",
+    "brace-expansion@5": "5.0.9",
+    "js-yaml@4": "4.3.1"
+  },
   "ai": {
+    "instructions": "Slack user IDs and conversation IDs are not interchangeable. User IDs start with U or W; conversation IDs start with C, D, or G.\nWhen uploading files to a person named by the user, first call find-users, then call read-conversation with the returned U or W user ID to resolve the DM, and finally call upload-files with the D-prefixed channel ID returned by read-conversation. Never pass a U or W user ID to upload-files.\n",
     "evals": [
       {
         "input": "@slack set my status to away",
@@ -240,20 +591,43 @@
         }
       },
       {
-        "input": "@slack summarize what happened in #general yesterday",
+        "input": "@slack summarize messages in #general after 2025-05-19T15:00:00Z",
         "expected": [
           {
             "callsTool": {
               "name": "get-channels"
             }
+          },
+          {
+            "callsTool": {
+              "name": "get-channel-history",
+              "arguments": {
+                "text": "C87654321",
+                "after": "2025-05-19T15:00:00Z"
+              }
+            }
           }
         ],
         "mocks": {
-          "get-channels": []
+          "get-channels": [
+            {
+              "id": "C87654321",
+              "name": "general",
+              "purpose": "Company-wide announcements and discussion"
+            }
+          ],
+          "get-channel-history": [
+            {
+              "text": "Shared the launch plan and assigned the remaining tasks.",
+              "user": "U87654321",
+              "ts": "1747669500.000200",
+              "date": "2025-05-19T15:45:00.000Z"
+            }
+          ]
         }
       },
       {
-        "input": "@ask summary the #product-team-issue-notification channel yesterday",
+        "input": "@slack find the channel ID for #product-team-issue-notification and summarize messages after 2025-05-19T15:00:00Z",
         "expected": [
           {
             "callsTool": {
@@ -269,42 +643,270 @@
               }
             }
           }
-        ]
+        ],
+        "mocks": {
+          "get-channels": [
+            {
+              "id": "C12345678",
+              "name": "product-team-issue-notification",
+              "purpose": "Product issue notifications"
+            }
+          ],
+          "get-channel-history": [
+            {
+              "text": "Fixed a checkout regression and deployed the patch.",
+              "user": "U12345678",
+              "ts": "1747668600.000100",
+              "date": "2025-05-19T15:30:00.000Z"
+            }
+          ]
+        }
+      },
+      {
+        "input": "@slack reply \"I will take a look\" to this thread: https://example.slack.com/archives/C12345678/p1718899200000100",
+        "expected": [
+          {
+            "callsTool": {
+              "name": "reply-thread",
+              "arguments": {
+                "channel": "C12345678",
+                "threadTs": "1718899200.000100",
+                "text": {
+                  "includes": "I will take a look"
+                }
+              }
+            }
+          }
+        ],
+        "mocks": {
+          "reply-thread": "success"
+        }
+      },
+      {
+        "input": "@slack reply \"We doubled since this morning 🤯\" to this thread and also send it to the channel: https://example.slack.com/archives/C12345678/p1718899200000100",
+        "expected": [
+          {
+            "callsTool": {
+              "name": "reply-thread",
+              "arguments": {
+                "channel": "C12345678",
+                "threadTs": "1718899200.000100",
+                "text": {
+                  "includes": "We doubled since this morning"
+                },
+                "replyBroadcast": true
+              }
+            }
+          }
+        ],
+        "mocks": {
+          "reply-thread": "success"
+        }
+      },
+      {
+        "input": "@slack react with :thumbsup: to https://example.slack.com/archives/C12345678/p1718899200000100",
+        "expected": [
+          {
+            "callsTool": {
+              "name": "add-reaction",
+              "arguments": {
+                "channel": "C12345678",
+                "messageTs": "1718899200.000100",
+                "emoji": {
+                  "includes": "thumbsup"
+                }
+              }
+            }
+          }
+        ],
+        "mocks": {
+          "add-reaction": "success"
+        }
+      },
+      {
+        "input": "@slack edit this message to say \"Updated copy\": https://example.slack.com/archives/C12345678/p1718899200000100",
+        "expected": [
+          {
+            "callsTool": {
+              "name": "update-message",
+              "arguments": {
+                "channel": "C12345678",
+                "messageTs": "1718899200.000100",
+                "text": {
+                  "includes": "Updated copy"
+                }
+              }
+            }
+          }
+        ],
+        "mocks": {
+          "update-message": "success"
+        }
+      },
+      {
+        "input": "@slack send this screenshot to Daniel with the message \"Testing Slack attachments\": /Users/me/Desktop/test.png",
+        "expected": [
+          {
+            "callsTool": {
+              "name": "find-users",
+              "arguments": {
+                "query": {
+                  "includes": "Daniel"
+                }
+              }
+            }
+          },
+          {
+            "callsTool": {
+              "name": "read-conversation",
+              "arguments": {
+                "conversation": {
+                  "includes": "U12345678"
+                }
+              }
+            }
+          },
+          {
+            "callsTool": {
+              "name": "upload-files",
+              "arguments": {
+                "channel": {
+                  "includes": "D12345678"
+                },
+                "filePaths": {
+                  "includes": "/Users/me/Desktop/test.png"
+                },
+                "text": {
+                  "includes": "Testing Slack attachments"
+                }
+              }
+            }
+          }
+        ],
+        "mocks": {
+          "find-users": [
+            {
+              "id": "U12345678",
+              "displayName": "Daniel"
+            }
+          ],
+          "read-conversation": {
+            "channel": "D12345678"
+          },
+          "upload-files": "success"
+        }
+      },
+      {
+        "input": "@slack get me a huddle link with Daniel",
+        "expected": [
+          {
+            "callsTool": {
+              "name": "find-users",
+              "arguments": {
+                "query": {
+                  "includes": "Daniel"
+                }
+              }
+            }
+          },
+          {
+            "callsTool": {
+              "name": "get-huddle-link",
+              "arguments": {
+                "conversation": {
+                  "includes": "U12345678"
+                }
+              }
+            }
+          }
+        ],
+        "mocks": {
+          "find-users": [
+            {
+              "id": "U12345678",
+              "displayName": "Daniel"
+            }
+          ],
+          "get-huddle-link": {
+            "workspaceId": "T12345678",
+            "channel": "D12345678",
+            "url": "https://app.slack.com/huddle/T12345678/D12345678"
+          }
+        }
+      },
+      {
+        "input": "@slack create a group DM with Alicia and Roy and send them this screenshot: /Users/me/Desktop/test.png",
+        "expected": [
+          {
+            "callsTool": {
+              "name": "find-users",
+              "arguments": {
+                "query": {
+                  "includes": "Alicia"
+                }
+              }
+            }
+          },
+          {
+            "callsTool": {
+              "name": "find-users",
+              "arguments": {
+                "query": {
+                  "includes": "Roy"
+                }
+              }
+            }
+          },
+          {
+            "callsTool": {
+              "name": "open-group-dm",
+              "arguments": {
+                "userIds": [
+                  {
+                    "includes": "U12345678"
+                  },
+                  {
+                    "includes": "U87654321"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "callsTool": {
+              "name": "upload-files",
+              "arguments": {
+                "channel": {
+                  "includes": "G12345678"
+                },
+                "filePaths": {
+                  "includes": "/Users/me/Desktop/test.png"
+                }
+              }
+            }
+          }
+        ],
+        "mocks": {
+          "find-users": [
+            {
+              "id": "U12345678",
+              "displayName": "Alicia"
+            },
+            {
+              "id": "U87654321",
+              "displayName": "Roy"
+            }
+          ],
+          "open-group-dm": {
+            "channel": "G12345678",
+            "userIds": [
+              "U12345678",
+              "U87654321"
+            ]
+          },
+          "upload-files": "success"
+        }
       }
     ]
-  },
-  "dependencies": {
-    "@raycast/api": "^1.104.6",
-    "@raycast/utils": "^2.2.2",
-    "@slack/web-api": "^7.14.1",
-    "date-fns": "^4.1.0",
-    "date-fns-tz": "^3.2.0",
-    "lodash": "^4.17.23",
-    "https-proxy-agent": "^7.0.6",
-    "node-emoji": "^2.2.0"
-  },
-  "devDependencies": {
-    "@raycast/eslint-config": "^2.1.1",
-    "@types/lodash": "^4.17.23",
-    "@types/node": "^25.2.3",
-    "@types/react": "^19.2.14",
-    "eslint": "^9.39.3",
-    "prettier": "^3.8.1",
-    "typescript": "^5.9.3"
-  },
-  "scripts": {
-    "build": "ray build -e dist",
-    "dev": "ray develop",
-    "fix-lint": "ray lint --fix",
-    "lint": "ray lint",
-    "publish": "npx @raycast/api@latest publish"
-  },
-  "volta": {
-    "node": "22.14.0",
-    "npm": "10.9.2"
-  },
-  "platforms": [
-    "macOS",
-    "Windows"
-  ]
+  }
 }
