@@ -300,6 +300,17 @@ section_install_script() {
     fail "trust_bundle_taps guards on brew trust availability"
   fi
 
+  # blink.cmp compiles a Rust fuzzy matcher at plugin-build time, so a profile
+  # that installs Neovim must also bring cargo or the first nvim launch fails.
+  local blink="$DOTFILES_DIR/nvim/lua/plugins/blinkcmp.lua"
+  if [[ -f "$blink" ]] && grep -q 'blink.cmp").build()' "$blink"; then
+    if grep -qx 'brew "rust"' "$DOTFILES_DIR"/brew/*.Brewfile; then
+      pass "blink.cmp builds from source and a bundle provides rust"
+    else
+      fail "blink.cmp calls build() but no bundle declares brew \"rust\" (cargo missing)"
+    fi
+  fi
+
   # Every tap a bundle declares must be a well-formed owner/name, or the
   # trust call silently does nothing useful.
   local f tapname
