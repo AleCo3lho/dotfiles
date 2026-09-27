@@ -36,13 +36,34 @@ SPARSE_PATHS="nvim aerospace ..."   # git sparse-checkout; empty = full tree
 ## Bootstrapping a new machine
 
 ```sh
-git clone --no-checkout git@github.com:AleCo3lho/dotfiles.git ~/.config
+git clone --no-checkout https://github.com/AleCo3lho/dotfiles.git ~/.config
 cd ~/.config
 git sparse-checkout init --cone
 git sparse-checkout set lib profiles brew
 git checkout main
 
 ./install.sh --profile work-secondary
+```
+
+Use the **HTTPS** URL. The repo is public, so HTTPS clones need no credentials at
+all, whereas `git@github.com:` fails with `Permission denied (publickey)` until a
+key is registered on the account — which looks like "no access" even though the
+repo is public. Note also that `git remote -v` on the primary machine shows
+`git@github.com-aleco3lho:...`, an SSH host alias defined in that machine's
+`~/.ssh/config`; it does not resolve anywhere else.
+
+To push from the new machine, authenticate afterwards:
+
+```sh
+gh auth login    # HTTPS, browser flow; sets up the git credential helper
+```
+
+or switch to SSH once a key exists:
+
+```sh
+ssh-keygen -t ed25519 -C "secondary-mac"
+gh ssh-key add ~/.ssh/id_ed25519.pub --title "secondary-mac"
+git remote set-url origin git@github.com:AleCo3lho/dotfiles.git
 ```
 
 The first `sparse-checkout set` is only enough to run the installer; `install.sh`
@@ -55,7 +76,7 @@ empty directory"*. Clone beside it and move the git dir in — existing contents
 preserved:
 
 ```sh
-git clone --no-checkout git@github.com:AleCo3lho/dotfiles.git ~/cfgtmp
+git clone --no-checkout https://github.com/AleCo3lho/dotfiles.git ~/cfgtmp
 mv ~/cfgtmp/.git ~/.config/.git && rmdir ~/cfgtmp
 cd ~/.config
 git sparse-checkout init --cone
