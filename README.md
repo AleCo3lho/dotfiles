@@ -95,6 +95,34 @@ On a machine that already has the repo, switch or re-apply a profile with:
 Run `--activate` after any `git pull` that changed `profiles/`, `brew/`, or
 `aerospace/hosts/`.
 
+## Third-party taps
+
+Homebrew 7 refuses to load formulae or casks from untrusted third-party taps:
+
+```
+Error: Refusing to load cask nikitabobko/tap/aerospace from untrusted tap
+       nikitabobko/tap.
+```
+
+`install.sh` handles this: before running `brew bundle` it reads the `tap "..."`
+lines out of the profile's bundles and runs `brew trust --tap` for each. This
+works even on a fresh machine where the taps are not installed yet, since trust
+is only a consent record in `~/.homebrew/trust.json` (or
+`$XDG_CONFIG_HOME/homebrew/trust.json` when that is set).
+
+Currently that covers `nikitabobko/tap` (AeroSpace) and `hashicorp/tap` (Vault).
+Adding a tap to a bundle is enough — no change to `install.sh` is needed.
+
+## After bootstrapping
+
+- Open a new terminal, then run `nvim` to trigger lazy.nvim, then `prefix + I`
+  in tmux. The first Neovim launch compiles blink.cmp's Rust fuzzy matcher, so
+  `cargo` must already exist — that is why the dev bundle installs `rust` and
+  not just `rustup` (only `rust` links cargo/rustc into the brew prefix).
+- Install a Nerd Font; powerlevel10k requires one.
+- Fill in `~/.config/.secrets`, created empty from `.secrets.example`.
+- Grant AeroSpace and Karabiner **Accessibility** permission in System Settings.
+
 ## Sparse checkout
 
 `SPARSE_PATHS` keeps large, machine-specific directories (`opencode/`,
@@ -173,21 +201,3 @@ bash tests/test_dotfiles.sh -v   # per-assertion output
 ```
 
 No side effects; nothing is installed.
-
-### Third-party taps
-
-Homebrew 7 refuses to load formulae or casks from untrusted third-party taps:
-
-```
-Error: Refusing to load cask nikitabobko/tap/aerospace from untrusted tap
-       nikitabobko/tap.
-```
-
-`install.sh` handles this: before running `brew bundle` it reads the `tap "..."`
-lines out of the profile's bundles and runs `brew trust --tap` for each. This
-works even on a fresh machine where the taps are not installed yet, since trust
-is only a consent record in `~/.homebrew/trust.json` (or
-`$XDG_CONFIG_HOME/homebrew/trust.json` when that is set).
-
-Currently that covers `nikitabobko/tap` (AeroSpace) and `hashicorp/tap` (Vault).
-Adding a tap to a bundle is enough — no change to `install.sh` is needed.
