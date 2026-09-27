@@ -1,0 +1,5 @@
+-- Profile: work-secondary — secondary work laptop.
+--
+-- This file is committed to a public repo. Keep anything work-confidential
+-- (internal hostnames, client paths, private LSP settings) in
+-- lua/config/local.lua instead, which is gitignored.

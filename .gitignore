@@ -8,3 +8,15 @@ packer/
 yarn/
 __pycache__/
 .secrets
+
+# ---- Machine-local, never committed ----
+# Which profile this machine runs (see profiles/*.conf)
+.profile
+# Active aerospace config: a symlink to aerospace/hosts/<host>.toml
+aerospace/aerospace.toml
+*.backup
+# Per-machine overrides, loaded last by zsh and nvim
+zsh/local.zsh
+nvim/lua/config/local.lua
+# GitHub CLI OAuth token
+gh/hosts.yml

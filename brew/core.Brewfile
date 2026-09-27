@@ -1,0 +1,13 @@
+# Core CLI tools — wanted on every machine.
+brew "git"
+brew "neovim"
+brew "tmux"
+brew "zsh"
+brew "fzf"
+brew "fd"
+brew "bat"
+brew "eza"
+brew "btop"
+brew "thefuck"
+brew "ripgrep"
+brew "stow"

@@ -1,0 +1,4 @@
+# Only .zshrc and .p10k.zsh belong in $HOME. Everything else in this package is
+# sourced by .zshrc via its full ~/.config/zsh/... path, so stow must not link it.
+^/profiles$
+^/local\.zsh$

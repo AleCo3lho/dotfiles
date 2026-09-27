@@ -1,3 +1,5 @@
+# Host: main — 3 displays (built-in + main + ARZOPA portable).
+
 after-login-command = []
 after-startup-command = [
   "move-workspace-to-monitor --workspace M 3",
@@ -130,6 +132,18 @@ run = 'move-node-to-workspace B'
 [[on-window-detected]]
 if.app-id = 'com.vivaldi.Vivaldi'
 run = 'move-node-to-workspace B'
+
+[[on-window-detected]]
+if.app-id = 'app.zen-browser.zen'
+run = 'move-node-to-workspace B'
+
+[[on-window-detected]]
+if.app-id = 'com.codeweavers.CrossOver'
+run = 'move-node-to-workspace G'
+
+[[on-window-detected]]
+if.app-id = 'com.codeweavers.CrossOverHelper*'
+run = 'move-node-to-workspace G'
 
 [[on-window-detected]]
 if.app-id = 'com.github.wez.wezterm'

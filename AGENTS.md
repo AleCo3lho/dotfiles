@@ -2,6 +2,17 @@
 
 This repository contains configuration files for various development tools and applications. It's organized by tool/application with each directory containing its respective configuration.
 
+The repo is shared across machines that want different subsets of it. A **profile**
+(`profiles/*.conf`, selected by the gitignored `~/.config/.profile`) controls which
+Homebrew bundles install, which bootstrap steps run, which directories are checked
+out, and which per-machine config variants activate. See `README.md` for the full
+model before changing anything under `profiles/`, `brew/`, `lib/`, or
+`aerospace/hosts/`.
+
+**This repository is public.** Machine-specific or work-confidential values go in
+gitignored files (`zsh/local.zsh`, `nvim/lua/config/local.lua`, `.secrets`), never
+in a committed profile fragment.
+
 ## Build/Lint/Test Commands
 
 ### Neovim (nvim/)
@@ -25,13 +36,28 @@ This repository contains configuration files for various development tools and a
 
 ### TOML configs (aerospace/)
 
-- **Validate**: `python3 -c "import tomllib; tomllib.load(open('aerospace/aerospace.toml'))"`
+- **Validate**: `for f in aerospace/hosts/*.toml; do python3 -c "import tomllib,sys; tomllib.load(open(sys.argv[1],'rb'))" "$f"; done`
 - **Lint**: N/A
+- **Note**: `aerospace/aerospace.toml` is a gitignored symlink to
+  `aerospace/hosts/<host>.toml`. Edit the host variant, never the symlink.
 
 ### JSON configs (karabiner/)
 
 - **Validate**: `python3 -m json.tool karabiner/karabiner.json > /dev/null && echo "Valid"`
 - **Lint**: N/A
+
+### Dotfiles test suite
+
+- **Run**: `bash tests/test_dotfiles.sh` (add `-v` for per-assertion output)
+- Validates file structure, every profile in `profiles/`, Brewfile bundles, zsh
+  security/correctness, stow symlinks, and `install.sh`. No side effects.
+- Note: `brew bundle check` assertions fail when packages on the machine are
+  merely outdated; that is a machine state issue, not a config regression.
+
+### Shell scripts
+
+- **Syntax check**: `bash -n install.sh lib/profile.sh tests/test_dotfiles.sh`
+- **Zsh**: `zsh -n zsh/.zshrc`
 
 ### General validation
 
@@ -96,6 +122,12 @@ This repository contains configuration files for various development tools and a
 ## File Organization
 
 - Each tool has its own directory: `nvim/`, `aerospace/`, `karabiner/`, `thefuck/`, `btop/`, `tmux/`, `opencode/`, etc.
+- Profile machinery: `profiles/*.conf` (definitions), `lib/profile.sh` (shared
+  resolver, sourced by `install.sh` and the tests), `brew/*.Brewfile` (bundles).
+- Per-profile config fragments: `zsh/profiles/`, `nvim/lua/config/profiles/`,
+  `aerospace/hosts/`.
+- `zsh/` is a stow package: anything added under it is linked into `$HOME` unless
+  listed in `zsh/.stow-local-ignore`.
 - Tool-specific documentation (if any) is in each directory's README.md
 - Ignore patterns: `.DS_Store`, `*.log`, caches, temporary files (see .gitignore)
 
@@ -108,6 +140,8 @@ This repository contains configuration files for various development tools and a
 
 ## Plugin/Package Managers
 
+- **Homebrew**: `brew bundle` over the profile's `brew/*.Brewfile` bundles. A
+  package must appear in exactly one bundle; the test suite enforces this.
 - **nvim**: lazy.nvim (auto-managed via `nvim/lua/config/lazy.lua`)
 - **tmux**: TPM (Tmux Plugin Manager) in `tmux/plugins/`
 - **opencode**: npm/bun package manager

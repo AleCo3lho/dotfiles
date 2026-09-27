@@ -1,0 +1,2 @@
+-- Profile: main — primary personal machine.
+-- No overrides needed; the shared config is tuned for this machine.

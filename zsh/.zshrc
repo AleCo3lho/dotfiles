@@ -1,3 +1,7 @@
+export PYENV_ROOT="$HOME/.pyenv"
+[[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
+eval "$(pyenv init -)"
+
 if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
 fi
@@ -15,16 +19,13 @@ source $ZSH/oh-my-zsh.sh
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 
 alias tf=terraform
-export PATH="/usr/local/bin:$HOME/go/bin:$PATH"
+alias tg=terragrunt
+export PATH="$HOME/go/bin:$PATH"
 JSII_SILENCE_WARNING_UNTESTED_NODE_VERSION=true
 
 export NVM_DIR="$HOME/.nvm"
   [ -s "/opt/homebrew/opt/nvm/nvm.sh" ] && \. "/opt/homebrew/opt/nvm/nvm.sh"  # This loads nvm
   [ -s "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm" ] && \. "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm"  # This loads nvm bash_completio
-
-export PYENV_ROOT="$HOME/.pyenv"
-[[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
-eval "$(pyenv init -)"
 
 #kubectl autocompletion
 autoload -Uz compinit
@@ -135,11 +136,8 @@ export GOPATH=$HOME/go
 export TEMPL_EXPERIMENT=rawgo
 export ANDROID_HOME=$HOME/Library/Android/sdk
 export PATH="$PATH:$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools"
-alias personalgitconfig='git config user.email "alexandre.coelho.ramos@proton.me" && git config user.name "Alexandre Coelho Ramos" && git config user.signingkey 3D410111AD01FD30BC9AA0FFCB1F052E99CDE73B && git config commit.gpgsign true && git config tag.gpgSign true'
 alias lokagitconfig='git config user.email "alexandre.ramos@loka.com" && git config user.name "Alexandre Ramos"'
-alias claude="CLAUDE_CONFIG_DIR=~/.claude-personal claude"
-alias klaude="claude --settings $HOME/.claude-work/settings.json"
-
+export CLAUDE_CONFIG_DIR="$HOME/.claude-active"
 
 export PATH=$PATH:$HOME/.bin:$HOME/.local
 export KUBE_EDITOR='nvim'
@@ -155,8 +153,6 @@ export PATH="$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH"
 autoload -U +X bashcompinit && bashcompinit
 complete -o nospace -C /opt/homebrew/bin/vault vault
 
-# Raspberry Pi Pico SDK
-export PICO_SDK_PATH=~/pico/pico-sdk
 
 export PATH="/opt/homebrew/opt/openjdk/bin:$PATH"
 export CPPFLAGS="-I/opt/homebrew/opt/openjdk/include"
@@ -164,3 +160,23 @@ export EDITOR="nvim"
 
 export PATH="$HOME/.local/bin:$PATH"
 export PATH="/opt/homebrew/opt/libpq/bin:$PATH"
+
+# bun completions
+[ -s "$HOME/.bun/_bun" ] && source "$HOME/.bun/_bun"
+
+# bun
+export BUN_INSTALL="$HOME/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"
+
+# ---- Per-machine profile ----
+# The profile name lives in ~/.config/.profile, which is gitignored, so each
+# machine picks its own without the repo ever knowing about it.
+DOTFILES_PROFILE=main
+[[ -r "$HOME/.config/.profile" ]] && DOTFILES_PROFILE="${$(<"$HOME/.config/.profile"):-main}"
+export DOTFILES_PROFILE
+
+[[ -f "$HOME/.config/zsh/profiles/$DOTFILES_PROFILE.zsh" ]] && \
+  source "$HOME/.config/zsh/profiles/$DOTFILES_PROFILE.zsh"
+
+# Machine-local overrides, never committed. Loaded last so it wins.
+[[ -f "$HOME/.config/zsh/local.zsh" ]] && source "$HOME/.config/zsh/local.zsh"
